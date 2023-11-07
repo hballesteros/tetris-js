@@ -25,7 +25,8 @@ const piece = {
   shape: [
     [1, 1],
     [1, 1]
-  ]
+  ],
+  colors: ['#FF0000', '#FF6600']
 }
 
 // 9. random pieces
@@ -58,6 +59,17 @@ const pieces = [
     [1, 1, 1, 1]
   ]
 ]
+
+const pieceColors = [
+  ['#00FFFF', '#008080'], // Color de degradado para la primera pieza
+  ['#0000FF', '#000080'], //
+  ['#FFA500', '#FF8C00'], //
+  ['#FFFF00', '#FFD700'], //
+  ['#00FF00', '#008000'], //
+  ['#800080', '#4B0082'], //
+  ['#FF0000', '#8B0000'] //
+]
+
 
 // 2. game loop
 // function update () {
@@ -100,11 +112,9 @@ function draw () {
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value === 1) {
-        // context.fillStyle = 'red'
-        // context.fillRect(piece.position.x + x, piece.position.y + y, 1, 1)
         const gradient = context.createLinearGradient(piece.position.x + x, piece.position.y + y, piece.position.x + x + 1, piece.position.y + y + 1)
-        gradient.addColorStop(0, 'orange')
-        gradient.addColorStop(1, 'red')
+        gradient.addColorStop(0, piece.colors[1])
+        gradient.addColorStop(1, piece.colors[0])
         context.fillStyle = gradient
         context.fillRect(piece.position.x + x, piece.position.y + y, 1, 1)
       }
@@ -173,6 +183,9 @@ function solidifyPiece () {
 
   // get random piece
   piece.shape = pieces[Math.floor(Math.random() * pieces.length)]
+
+  // get random colors
+  piece.colors = pieceColors[Math.floor(Math.random() * pieceColors.length)]
 
   // reset position
   piece.position = {
