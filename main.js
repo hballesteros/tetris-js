@@ -19,16 +19,6 @@ function createBoard (width, height) {
 }
 const board = createBoard(BOARD_WIDTH, BOARD_HEIGHT)
 
-// 4 pieza player
-const piece = {
-  position: { x: 5, y: 5 },
-  shape: [
-    [1, 1],
-    [1, 1]
-  ],
-  colors: ['#FF0000', '#FF6600']
-}
-
 // 9. random pieces
 const pieces = [
   [
@@ -36,46 +26,69 @@ const pieces = [
     [1, 1]
   ],
   [
-    [1, 1, 1],
-    [0, 1, 0]
+    [2, 2, 2],
+    [0, 2, 0]
   ],
   [
-    [1, 1, 1],
-    [0, 0, 1]
+    [3, 3, 3],
+    [0, 0, 3]
   ],
   [
-    [1, 1, 1],
-    [1, 0, 0]
+    [4, 4, 4],
+    [4, 0, 0]
   ],
   [
-    [1, 1, 0],
-    [0, 1, 1]
+    [5, 5, 0],
+    [0, 5, 5]
   ],
   [
-    [0, 1, 1],
-    [1, 1, 0]
+    [0, 6, 6],
+    [6, 6, 0]
   ],
   [
-    [1, 1, 1, 1]
+    [7, 7, 7, 7]
   ]
 ]
 
 const pieceColors = [
-  ['#00FFFF', '#008080'], // Color de degradado para la primera pieza
-  ['#0000FF', '#000080'], //
-  ['#FFA500', '#FF8C00'], //
-  ['#FFFF00', '#FFD700'], //
-  ['#00FF00', '#008000'], //
-  ['#800080', '#4B0082'], //
-  ['#FF0000', '#8B0000'] //
+  ['#FFFF00', '#FFD700'],
+  ['#800080', '#4B0082'],
+  ['#0000FF', '#000080'],
+  ['#FFA500', '#FF8C00'],
+  ['#FF0000', '#8B0000'],
+  ['#00FF00', '#008000'],
+  ['#00FFFF', '#008080']
 ]
 
+const piecesTypes = [
+  'O',
+  'T',
+  'J',
+  'L',
+  'Z',
+  'S',
+  'I'
+]
+
+function getRandomPiece () {
+  const randomIndex = Math.floor(Math.random() * pieces.length)
+  const randomShape = pieces[randomIndex]
+  const randomColors = pieceColors[randomIndex]
+  const randomType = piecesTypes[randomIndex]
+
+  const piece = {
+    position: { x: 5, y: 5 }, // Puedes ajustar la posición según tus necesidades
+    shape: randomShape,
+    colors: randomColors,
+    type: randomType
+  }
+
+  return piece
+}
+
+let piece = getRandomPiece()
 
 // 2. game loop
-// function update () {
-//   draw()
-//   window.requestAnimationFrame(update)
-// }
 let dropCounter = 0
 let lastTime = 0
 function update (time = 0) {
@@ -97,13 +110,34 @@ function update (time = 0) {
 }
 
 function draw () {
+  // const cellSize = 1
+  // context.strokeStyle = "#ccc"
+  // context.lineWidth = 0.01
   context.fillStyle = '#000'
   context.fillRect(0, 0, canvas.width, canvas.height)
+  // Dibuja las líneas verticales
+  // for (let i = 0; i <= canvas.width; i += cellSize) {
+  //   context.beginPath()
+  //   context.moveTo(i, 0)
+  //   context.lineTo(i, canvas.height)
+  //   context.stroke()
+  // }
+
+  // Dibuja las líneas horizontales
+  // for (let j = 0; j <= canvas.height; j += cellSize) {
+  //   context.beginPath()
+  //   context.moveTo(0, j)
+  //   context.lineTo(canvas.width, j)
+  //   context.stroke()
+  // }
 
   board.forEach((row, y) => {
     row.forEach((value, x) => {
-      if (value === 1) {
-        context.fillStyle = 'yellow'
+      if (value !== 0) {
+        const gradient = context.createLinearGradient(x, y, x + 1, y + 1)
+        gradient.addColorStop(0, pieceColors[value - 1][1])
+        gradient.addColorStop(1, pieceColors[value - 1][0])
+        context.fillStyle = gradient
         context.fillRect(x, y, 1, 1)
       }
     })
@@ -111,7 +145,7 @@ function draw () {
 
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
-      if (value === 1) {
+      if (value !== 0) {
         const gradient = context.createLinearGradient(piece.position.x + x, piece.position.y + y, piece.position.x + x + 1, piece.position.y + y + 1)
         gradient.addColorStop(0, piece.colors[1])
         gradient.addColorStop(1, piece.colors[0])
@@ -175,17 +209,14 @@ function checkCollision () {
 function solidifyPiece () {
   piece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
-      if (value === 1) {
-        board[piece.position.y + y][piece.position.x + x] = 1
+      if (value !== 0) {
+        board[piece.position.y + y][piece.position.x + x] = value
       }
     })
   })
 
   // get random piece
-  piece.shape = pieces[Math.floor(Math.random() * pieces.length)]
-
-  // get random colors
-  piece.colors = pieceColors[Math.floor(Math.random() * pieceColors.length)]
+  piece = getRandomPiece()
 
   // reset position
   piece.position = {
@@ -202,7 +233,7 @@ function solidifyPiece () {
 
 function removeRows () {
   board.forEach((row, y) => {
-    if (row.every(value => value === 1)) {
+    if (row.every(value => value !== 0)) {
       board.splice(y, 1)
       board.unshift(Array(BOARD_WIDTH).fill(0))
       score += 10
