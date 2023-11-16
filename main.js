@@ -30,12 +30,14 @@ const pieces = [
     [0, 2, 0]
   ],
   [
-    [3, 3, 3],
-    [0, 0, 3]
+    [0, 3],
+    [0, 3],
+    [3, 3]
   ],
   [
-    [4, 4, 4],
-    [4, 0, 0]
+    [4, 0],
+    [4, 0],
+    [4, 4]
   ],
   [
     [5, 5, 0],
@@ -46,7 +48,10 @@ const pieces = [
     [6, 6, 0]
   ],
   [
-    [7, 7, 7, 7]
+    [7],
+    [7],
+    [7],
+    [7]
   ]
 ]
 
@@ -236,7 +241,7 @@ function removeRows () {
     if (row.every(value => value !== 0)) {
       board.splice(y, 1)
       board.unshift(Array(BOARD_WIDTH).fill(0))
-      score += 10
+      score += 100
     }
   })
 }
