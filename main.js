@@ -5,8 +5,13 @@ import { BLOCK_SIZE, BOARD_WIDTH, BOARD_HEIGHT, EVENT_MOVEMENTS } from './consts
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d')
 const $score = document.querySelector('span')
+const $section = document.querySelector('section')
+const audio = new window.Audio('/tetris.mp3')
+const audioSuccess = new window.Audio('/success.mp3')
 
 let score = 0
+let paused = false
+let instantDrop = false
 
 canvas.width = BLOCK_SIZE * BOARD_WIDTH
 canvas.height = BLOCK_SIZE * BOARD_HEIGHT
@@ -97,19 +102,40 @@ let piece = getRandomPiece()
 let dropCounter = 0
 let lastTime = 0
 function update (time = 0) {
+  // fijarse si el juego está pausado
+  // agregar que se ponga oscura la pantalla y un mensaje de pausa
+  if (paused) {
+    window.requestAnimationFrame(update)
+    canvas.classList.add('hidden-canvas') // Oculta el canvas
+    audio.pause()
+    return
+  } else {
+    canvas.classList.remove('hidden-canvas') // Muestra el canvas
+  }
+
   const deltaTime = time - lastTime
   lastTime = time
-  dropCounter += deltaTime
-  if (dropCounter > 1000) {
-    piece.position.y++
-    dropCounter = 0
 
-    if (checkCollision()) {
-      piece.position.y--
-      solidifyPiece()
-      removeRows()
+  if (instantDrop) {
+    while (!checkCollision()) {
+      piece.position.y++
+    }
+    piece.position.y--
+    instantDrop = false
+  } else {
+    dropCounter += deltaTime
+    if (dropCounter > 1000) {
+      piece.position.y++
+      dropCounter = 0
+
+      if (checkCollision()) {
+        piece.position.y--
+        solidifyPiece()
+        removeRows()
+      }
     }
   }
+
   draw()
   window.requestAnimationFrame(update)
 }
@@ -201,6 +227,18 @@ document.addEventListener('keydown', event => {
       piece.shape = previousShape
     }
   }
+
+  if (event.key === 'p') {
+    paused = !paused
+    if (!paused) {
+      update()
+      audio.play()
+    }
+  }
+
+  if (event.key === ' ') {
+    instantDrop = true
+  }
 })
 
 function checkCollision () {
@@ -242,17 +280,18 @@ function removeRows () {
       board.splice(y, 1)
       board.unshift(Array(BOARD_WIDTH).fill(0))
       score += 100
+      audioSuccess.play()
     }
   })
 }
 
-const $section = document.querySelector('section')
-
 $section.addEventListener('click', () => {
-  update()
+  if (!paused) {
+    update()
+  }
 
   $section.remove()
-  const audio = new window.Audio('/tetris.mp3')
   audio.volume = 0.5
   audio.play()
+  audio.loop = true
 })

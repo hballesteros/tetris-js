@@ -33,3 +33,7 @@ section {
   font-size: 48px;
   place-content: center;
 }
+
+.hidden-canvas {
+  display: none;
+}
