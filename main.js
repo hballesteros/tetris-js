@@ -1,15 +1,19 @@
 import './style.css'
-import { BLOCK_SIZE, BOARD_WIDTH, BOARD_HEIGHT, EVENT_MOVEMENTS } from './consts.js'
+import { BLOCK_SIZE, BOARD_WIDTH, BOARD_HEIGHT, EVENT_MOVEMENTS, LEVELS } from './consts.js'
 
 // 1. inicializar el canvas
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d')
-const $score = document.querySelector('span')
+const $score = document.getElementById('score')
+const $level = document.getElementById('level')
 const $section = document.querySelector('section')
 const audio = new window.Audio('/tetris.mp3')
 const audioSuccess = new window.Audio('/success.mp3')
+const audioRotate = new window.Audio('/rotate.mp3')
+const audioTouch = new window.Audio('/touch.mp3')
 
 let score = 0
+let level = 0
 let paused = false
 let instantDrop = false
 
@@ -113,6 +117,8 @@ function update (time = 0) {
     canvas.classList.remove('hidden-canvas') // Muestra el canvas
   }
 
+  const currentLevel = LEVELS[level]
+  const dropInterval = currentLevel.speed
   const deltaTime = time - lastTime
   lastTime = time
 
@@ -124,7 +130,7 @@ function update (time = 0) {
     instantDrop = false
   } else {
     dropCounter += deltaTime
-    if (dropCounter > 1000) {
+    if (dropCounter > dropInterval) {
       piece.position.y++
       dropCounter = 0
 
@@ -141,26 +147,8 @@ function update (time = 0) {
 }
 
 function draw () {
-  // const cellSize = 1
-  // context.strokeStyle = "#ccc"
-  // context.lineWidth = 0.01
   context.fillStyle = '#000'
   context.fillRect(0, 0, canvas.width, canvas.height)
-  // Dibuja las líneas verticales
-  // for (let i = 0; i <= canvas.width; i += cellSize) {
-  //   context.beginPath()
-  //   context.moveTo(i, 0)
-  //   context.lineTo(i, canvas.height)
-  //   context.stroke()
-  // }
-
-  // Dibuja las líneas horizontales
-  // for (let j = 0; j <= canvas.height; j += cellSize) {
-  //   context.beginPath()
-  //   context.moveTo(0, j)
-  //   context.lineTo(canvas.width, j)
-  //   context.stroke()
-  // }
 
   board.forEach((row, y) => {
     row.forEach((value, x) => {
@@ -187,6 +175,7 @@ function draw () {
   })
 
   $score.innerText = score
+  $level.innerText = level + 1
 }
 
 // 5. mover pieza
@@ -225,6 +214,9 @@ document.addEventListener('keydown', event => {
     piece.shape = rotated
     if (checkCollision()) {
       piece.shape = previousShape
+    } else {
+      audioRotate.play()
+      audioRotate.volume = 0.2
     }
   }
 
@@ -237,6 +229,7 @@ document.addEventListener('keydown', event => {
   }
 
   if (event.key === ' ') {
+    audioTouch.play()
     instantDrop = true
   }
 })
@@ -271,8 +264,12 @@ function solidifyPiece () {
   if (checkCollision()) {
     window.alert('Game Over!! Sorry!')
     board.forEach(row => row.fill(0))
+    score = 0
+    level = 0
   }
 }
+
+const ROWS_PER_LEVEL = 2 // Cambia según sea necesario
 
 function removeRows () {
   board.forEach((row, y) => {
@@ -283,6 +280,11 @@ function removeRows () {
       audioSuccess.play()
     }
   })
+  // Verificar si se ha alcanzado el número de filas para subir de nivel
+  if (score >= (ROWS_PER_LEVEL * 100 * (level + 1))) {
+    level++
+    dropCounter = 0
+  }
 }
 
 $section.addEventListener('click', () => {
